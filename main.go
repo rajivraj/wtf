@@ -8,6 +8,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/olebedev/config"
+	"github.com/pkg/profile"
 	"github.com/radovskyb/watcher"
 	"github.com/rivo/tview"
 	"github.com/senorprogrammer/wtf/bamboohr"
@@ -40,15 +41,18 @@ import (
 	"github.com/senorprogrammer/wtf/textfile"
 	"github.com/senorprogrammer/wtf/todo"
 	"github.com/senorprogrammer/wtf/todoist"
+	"github.com/senorprogrammer/wtf/travisci"
 	"github.com/senorprogrammer/wtf/trello"
 	"github.com/senorprogrammer/wtf/weatherservices/prettyweather"
 	"github.com/senorprogrammer/wtf/weatherservices/weather"
 	"github.com/senorprogrammer/wtf/wtf"
+	"github.com/senorprogrammer/wtf/zendesk"
 )
 
+var focusTracker wtf.FocusTracker
+var widgets []wtf.Wtfable
+
 var Config *config.Config
-var FocusTracker wtf.FocusTracker
-var Widgets []wtf.Wtfable
 
 var (
 	commit  = "dev"
@@ -59,17 +63,19 @@ var (
 /* -------------------- Functions -------------------- */
 
 func disableAllWidgets() {
-	for _, widget := range Widgets {
+	for _, widget := range widgets {
 		widget.Disable()
 	}
 }
 
 func initializeFocusTracker(app *tview.Application) {
-	FocusTracker = wtf.FocusTracker{
+	focusTracker = wtf.FocusTracker{
 		App:     app,
 		Idx:     -1,
-		Widgets: Widgets,
+		Widgets: widgets,
 	}
+
+	focusTracker.AssignHotKeys()
 }
 
 func keyboardIntercept(event *tcell.EventKey) *tcell.EventKey {
@@ -77,14 +83,16 @@ func keyboardIntercept(event *tcell.EventKey) *tcell.EventKey {
 	case tcell.KeyCtrlR:
 		refreshAllWidgets()
 	case tcell.KeyTab:
-		FocusTracker.Next()
+		focusTracker.Next()
 	case tcell.KeyBacktab:
-		FocusTracker.Prev()
+		focusTracker.Prev()
 	case tcell.KeyEsc:
-		FocusTracker.None()
-	default:
-		return event
+		focusTracker.None()
+		//default:
+		//return event
 	}
+
+	focusTracker.FocusOn(string(event.Rune()))
 
 	return event
 }
@@ -114,7 +122,7 @@ func redrawApp(app *tview.Application) {
 }
 
 func refreshAllWidgets() {
-	for _, widget := range Widgets {
+	for _, widget := range widgets {
 		go widget.Refresh()
 	}
 }
@@ -136,10 +144,10 @@ func watchForConfigChanges(app *tview.Application, configFilePath string, grid *
 				loadConfigFile(configFilePath)
 				// Disable all widgets to stop scheduler goroutines and rmeove widgets from memory.
 				disableAllWidgets()
-				Widgets = nil
+				widgets = nil
 				makeWidgets(app, pages)
 				initializeFocusTracker(app)
-				display := wtf.NewDisplay(Widgets)
+				display := wtf.NewDisplay(widgets)
 				pages.AddPage("grid", display.Grid, true, true)
 			case err := <-watch.Error:
 				log.Fatalln(err)
@@ -164,67 +172,71 @@ func addWidget(app *tview.Application, pages *tview.Pages, widgetName string) {
 	// Always in alphabetical order
 	switch widgetName {
 	case "bamboohr":
-		Widgets = append(Widgets, bamboohr.NewWidget())
+		widgets = append(widgets, bamboohr.NewWidget())
 	case "bargraph":
-		Widgets = append(Widgets, bargraph.NewWidget())
+		widgets = append(widgets, bargraph.NewWidget())
 	case "bittrex":
-		Widgets = append(Widgets, bittrex.NewWidget())
+		widgets = append(widgets, bittrex.NewWidget())
 	case "blockfolio":
-		Widgets = append(Widgets, blockfolio.NewWidget(app, pages))
+		widgets = append(widgets, blockfolio.NewWidget(app, pages))
 	case "circleci":
-		Widgets = append(Widgets, circleci.NewWidget())
+		widgets = append(widgets, circleci.NewWidget())
 	case "clocks":
-		Widgets = append(Widgets, clocks.NewWidget())
+		widgets = append(widgets, clocks.NewWidget())
 	case "cmdrunner":
-		Widgets = append(Widgets, cmdrunner.NewWidget())
+		widgets = append(widgets, cmdrunner.NewWidget())
 	case "cryptolive":
-		Widgets = append(Widgets, cryptolive.NewWidget())
+		widgets = append(widgets, cryptolive.NewWidget())
 	case "gcal":
-		Widgets = append(Widgets, gcal.NewWidget())
+		widgets = append(widgets, gcal.NewWidget())
 	case "gerrit":
-		Widgets = append(Widgets, gerrit.NewWidget(app, pages))
+		widgets = append(widgets, gerrit.NewWidget(app, pages))
 	case "git":
-		Widgets = append(Widgets, git.NewWidget(app, pages))
+		widgets = append(widgets, git.NewWidget(app, pages))
 	case "github":
-		Widgets = append(Widgets, github.NewWidget(app, pages))
+		widgets = append(widgets, github.NewWidget(app, pages))
 	case "gitlab":
-		Widgets = append(Widgets, gitlab.NewWidget(app, pages))
+		widgets = append(widgets, gitlab.NewWidget(app, pages))
 	case "gspreadsheets":
-		Widgets = append(Widgets, gspreadsheets.NewWidget())
+		widgets = append(widgets, gspreadsheets.NewWidget())
 	case "ipapi":
-		Widgets = append(Widgets, ipapi.NewWidget())
+		widgets = append(widgets, ipapi.NewWidget())
 	case "ipinfo":
-		Widgets = append(Widgets, ipinfo.NewWidget())
+		widgets = append(widgets, ipinfo.NewWidget())
 	case "jenkins":
-		Widgets = append(Widgets, jenkins.NewWidget())
+		widgets = append(widgets, jenkins.NewWidget())
 	case "jira":
-		Widgets = append(Widgets, jira.NewWidget())
+		widgets = append(widgets, jira.NewWidget())
 	case "logger":
-		Widgets = append(Widgets, logger.NewWidget())
+		widgets = append(widgets, logger.NewWidget())
 	case "newrelic":
-		Widgets = append(Widgets, newrelic.NewWidget())
+		widgets = append(widgets, newrelic.NewWidget())
 	case "opsgenie":
-		Widgets = append(Widgets, opsgenie.NewWidget())
+		widgets = append(widgets, opsgenie.NewWidget())
 	case "power":
-		Widgets = append(Widgets, power.NewWidget())
+		widgets = append(widgets, power.NewWidget())
 	case "prettyweather":
-		Widgets = append(Widgets, prettyweather.NewWidget())
+		widgets = append(widgets, prettyweather.NewWidget())
 	case "security":
-		Widgets = append(Widgets, security.NewWidget())
+		widgets = append(widgets, security.NewWidget())
 	case "status":
-		Widgets = append(Widgets, status.NewWidget())
+		widgets = append(widgets, status.NewWidget())
 	case "system":
-		Widgets = append(Widgets, system.NewWidget(date, version))
+		widgets = append(widgets, system.NewWidget(date, version))
 	case "textfile":
-		Widgets = append(Widgets, textfile.NewWidget(app, pages))
+		widgets = append(widgets, textfile.NewWidget(app, pages))
 	case "todo":
-		Widgets = append(Widgets, todo.NewWidget(app, pages))
+		widgets = append(widgets, todo.NewWidget(app, pages))
 	case "todoist":
-		Widgets = append(Widgets, todoist.NewWidget(app, pages))
+		widgets = append(widgets, todoist.NewWidget(app, pages))
+	case "travisci":
+		widgets = append(widgets, travisci.NewWidget())
 	case "trello":
-		Widgets = append(Widgets, trello.NewWidget())
+		widgets = append(widgets, trello.NewWidget())
 	case "weather":
-		Widgets = append(Widgets, weather.NewWidget(app, pages))
+		widgets = append(widgets, weather.NewWidget(app, pages))
+	case "zendesk":
+		widgets = append(widgets, zendesk.NewWidget())
 	default:
 	}
 }
@@ -253,6 +265,10 @@ func main() {
 	cfg.CreateConfigFile()
 	loadConfigFile(flags.ConfigFilePath())
 
+	if flags.Profile {
+		defer profile.Start(profile.MemProfile).Stop()
+	}
+
 	setTerm()
 
 	app := tview.NewApplication()
@@ -261,7 +277,7 @@ func main() {
 	makeWidgets(app, pages)
 	initializeFocusTracker(app)
 
-	display := wtf.NewDisplay(Widgets)
+	display := wtf.NewDisplay(widgets)
 	pages.AddPage("grid", display.Grid, true, true)
 	app.SetInputCapture(keyboardIntercept)
 

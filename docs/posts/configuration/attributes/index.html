@@ -85,7 +85,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <li class="sidebar-list-item-2"><a href="/posts/modules/gerrit/">Gerrit</a></li>
         <li class="sidebar-list-item-2"><a href="/posts/modules/git/">Git</a></li>
         <li class="sidebar-list-item-2"><a href="/posts/modules/github/">GitHub</a></li>
-        <li class="sidebar-list-item-2"><a href="/posts/modules/gitlab/">Gitlab</a></li>
+        <li class="sidebar-list-item-2"><a href="/posts/modules/gitlab/">GitLab</a></li>
         <li class="sidebar-list-item-2"><a href="/posts/modules/gcal/">Google Calendar</a></li>
         <li class="sidebar-list-item-2"><a href="/posts/modules/gspreadsheet">Google Spreadsheet</a></li>
         <li class="sidebar-list-item-2"><a href="/posts/modules/ipapi/">IP-API</a></li>
@@ -101,8 +101,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <li class="sidebar-list-item-2"><a href="/posts/modules/textfile/">Text File</a></li>
         <li class="sidebar-list-item-2"><a href="/posts/modules/todo/">Todo</a></li>
         <li class="sidebar-list-item-2"><a href="/posts/modules/todoist/">Todoist</a></li>
+        <li class="sidebar-list-item-2"><a href="/posts/modules/travisci/">Travis CI</a></li>
         <li class="sidebar-list-item-2"><a href="/posts/modules/trello/">Trello</a></li>
         <li class="sidebar-list-item-2"><a href="/posts/modules/weather/">Weather</a></li>
+        <li class="sidebar-list-item-2"><a href="/posts/modules/zendesk/">Zendesk</a></li>
       </ul>
     </div>
 
@@ -153,6 +155,7 @@ See this <a href="https://github.com/senorprogrammer/wtf/blob/master/_sample_con
 </span><span class="w">    </span><span class="c"># that support ten line of text, one of three lines, and one of four</span><span class="w">
 </span><span class="w">    </span>rows<span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">4</span><span class="p">]</span><span class="w">
 </span><span class="w">  </span><span class="c"># The app redraws itself once a second</span><span class="w">
+</span><span class="w">  </span>openFileUtil<span class="p">:</span><span class="w"> </span>open<span class="w">
 </span><span class="w">  </span>refreshInterval<span class="p">:</span><span class="w"> </span><span class="m">1</span><span class="w">
 </span><span class="w">  </span>term<span class="p">:</span><span class="w"> </span><span class="s2">&#34;xterm-256color&#34;</span></code></pre></div>
 <h3 id="attributes">Attributes</h3>
@@ -191,6 +194,9 @@ Grid</a> for details.</p>
 An array that defines the heights of all the rows. <br />
 Values: See <a href="https://github.com/rivo/tview/wiki/Grid">tview&rsquo;s
 Grid</a> for details.</p>
+
+<p><code>openFileUtil</code> <br />
+Command to use to open a file or URL</p>
 
 <p><code>refreshInterval</code> <br />
 How often, in seconds, the UI refreshes itself. <br />

@@ -16,7 +16,7 @@ type Widget struct {
 
 func NewWidget() *Widget {
 	widget := Widget{
-		TextWidget: wtf.NewTextWidget(" Jira ", "jira", true),
+		TextWidget: wtf.NewTextWidget("Jira", "jira", true),
 	}
 	widget.unselect()
 
@@ -54,13 +54,10 @@ func (widget *Widget) display() {
 		return
 	}
 	widget.View.SetWrap(false)
-	widget.View.SetTitle(
-		fmt.Sprintf(
-			"%s- [green]%s[white]",
-			widget.Name,
-			wtf.Config.UString("wtf.mods.jira.project"),
-		),
-	)
+
+	str := fmt.Sprintf("%s- [green]%s[white]", widget.Name, wtf.Config.UString("wtf.mods.jira.project"))
+
+	widget.View.SetTitle(widget.ContextualTitle(str))
 	widget.View.SetText(fmt.Sprintf("%s", widget.contentFrom(widget.result)))
 }
 
@@ -94,14 +91,20 @@ func (widget *Widget) contentFrom(searchResult *SearchResult) string {
 	str := " [red]Assigned Issues[white]\n"
 
 	for idx, issue := range searchResult.Issues {
-		str = str + fmt.Sprintf(
-			" [%s]%-6s[white] [green]%-10s [%s]%s\n",
+		fmtStr := fmt.Sprintf(
+			"[%s] [%s]%-6s[white] [green]%-10s[white] [%s]%s",
+			widget.rowColor(idx),
 			widget.issueTypeColor(&issue),
 			issue.IssueFields.IssueType.Name,
 			issue.Key,
 			widget.rowColor(idx),
 			issue.IssueFields.Summary,
 		)
+
+		_, _, w, _ := widget.View.GetInnerRect()
+		fmtStr = fmtStr + wtf.PadRow(len(issue.IssueFields.Summary), w+1)
+
+		str = str + fmtStr + "\n"
 	}
 
 	return str
@@ -109,8 +112,9 @@ func (widget *Widget) contentFrom(searchResult *SearchResult) string {
 
 func (widget *Widget) rowColor(idx int) string {
 	if widget.View.HasFocus() && (idx == widget.selected) {
-		foreColor := wtf.Config.UString("wtf.mods.jira.colors.highlight.fore", "black")
-		backColor := wtf.Config.UString("wtf.mods.jira.colors.highlight.back", "white")
+		foreColor := wtf.Config.UString("wtf.colors.highlight.fore", "black")
+		backColor := wtf.Config.UString("wtf.colors.highlight.back", "orange")
+
 		return fmt.Sprintf("%s:%s", foreColor, backColor)
 	}
 	return wtf.RowColor("jira", idx)

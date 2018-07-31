@@ -7,6 +7,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 	"github.com/senorprogrammer/wtf/cfg"
+	"github.com/senorprogrammer/wtf/checklist"
 	"github.com/senorprogrammer/wtf/wtf"
 	"gopkg.in/yaml.v2"
 )
@@ -39,21 +40,23 @@ type Widget struct {
 
 	app      *tview.Application
 	filePath string
-	list     *List
+	list     checklist.Checklist
 	pages    *tview.Pages
 }
 
 func NewWidget(app *tview.Application, pages *tview.Pages) *Widget {
 	widget := Widget{
-		TextWidget: wtf.NewTextWidget(" Todo ", "todo", true),
+		TextWidget: wtf.NewTextWidget("Todo", "todo", true),
 
 		app:      app,
 		filePath: wtf.Config.UString("wtf.mods.todo.filename"),
-		list:     &List{selected: -1},
+		list:     checklist.NewChecklist(),
 		pages:    pages,
 	}
 
 	widget.init()
+	widget.View.SetScrollable(true)
+	widget.View.SetRegions(true)
 	widget.View.SetInputCapture(widget.keyboardIntercept)
 
 	return &widget
@@ -65,9 +68,11 @@ func (widget *Widget) Refresh() {
 	widget.UpdateRefreshedAt()
 	widget.load()
 	widget.display()
+
+	widget.View.SetTitle(widget.ContextualTitle(widget.Name))
 }
 
-func (widget *Widget) SetList(newList *List) {
+func (widget *Widget) SetList(newList checklist.Checklist) {
 	widget.list = newList
 }
 
@@ -75,11 +80,11 @@ func (widget *Widget) SetList(newList *List) {
 
 // edit opens a modal dialog that permits editing the text of the currently-selected item
 func (widget *Widget) editItem() {
-	if widget.list.Selected() == nil {
+	if widget.list.SelectedItem() == nil {
 		return
 	}
 
-	form := widget.modalForm("Edit:", widget.list.Selected().Text)
+	form := widget.modalForm("Edit:", widget.list.SelectedItem().Text)
 
 	saveFctn := func() {
 		text := form.GetFormItem(0).(*tview.InputField).GetText()
@@ -129,7 +134,8 @@ func (widget *Widget) keyboardIntercept(event *tcell.EventKey) *tcell.EventKey {
 		return nil
 	case "o":
 		// Open the file
-		wtf.OpenFile(widget.filePath)
+		confDir, _ := cfg.ConfigDir()
+		wtf.OpenFile(fmt.Sprintf("%s/%s", confDir, widget.filePath))
 		return nil
 	}
 
@@ -191,7 +197,7 @@ func (widget *Widget) newItem() {
 	saveFctn := func() {
 		text := form.GetFormItem(0).(*tview.InputField).GetText()
 
-		widget.list.Add(text)
+		widget.list.Add(false, text)
 		widget.persist()
 		widget.pages.RemovePage("modal")
 		widget.app.SetFocus(widget.View)
