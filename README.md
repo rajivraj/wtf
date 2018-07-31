@@ -6,7 +6,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/senorprogrammer/wtf)](https://goreportcard.com/report/github.com/senorprogrammer/wtf)
 
 # WTF
-
+This **fork** contains minor performance and design improvements. The installer is working for linux now.
+<br><br>
 A personal terminal-based dashboard utility, designed for
 displaying infrequently-needed, but very important, daily data.
 
@@ -16,13 +17,19 @@ displaying infrequently-needed, but very important, daily data.
 
 ## Quick Start
 
-[Download and run the latest binary](https://github.com/senorprogrammer/wtf/releases) or install from source:
-
+### Mac OSX
 ```bash
 go get -u github.com/senorprogrammer/wtf
 cd $GOPATH/src/github.com/senorprogrammer/wtf
 make install
 make run
+```
+
+### Linux
+```
+git clone https://github.com/deltaxflux/wtf/
+cd wtf
+./installer.sh
 ```
 
 **Note:** WTF is _only_ compatible with Go versions **1.9.2** or later. It currently _does not_ compile with `gccgo`.
